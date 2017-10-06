@@ -13,14 +13,19 @@ namespace Exercise
     {
         List<KeyValuePair<string, string>> users;
         bool _sendData;
+        Random _randomNumbers, _randomBytes;
         Timer _timer;
         OperationContext _context;
+        
         public Server()
         {
+            _randomNumbers = new Random();
+            _randomBytes = new Random();
             users = new List<KeyValuePair<string, string>>();
             users.Add(new KeyValuePair<string, string>("1", "2"));
             _timer = new Timer(2000);
         }
+        
         public bool Authenticate(string userName, string password)
         {
             bool userExists = users.Find(x => x.Key == userName && x.Value == password).Equals(new KeyValuePair<string, string>(userName, password));
@@ -43,8 +48,7 @@ namespace Exercise
             try
             {
                 IServerCallback callBack = _context.GetCallbackChannel<IServerCallback>();
-                Random rnd = new Random();
-                int randomNumber = rnd.Next();
+                int randomNumber = _randomNumbers.Next();
                 callBack.ReceiveInt(randomNumber);
                 Console.WriteLine("Sending random number: {0}", randomNumber);
             }
@@ -57,13 +61,13 @@ namespace Exercise
             try
             {
                 IServerCallback callBack = _context.GetCallbackChannel<IServerCallback>();
-                Random rnd = new Random();
+                
                 _sendData = true;
                 byte[] bytes;
                 while (_sendData)
                 {
                     bytes = new byte[1000];
-                    rnd.NextBytes(bytes);
+                    _randomBytes.NextBytes(bytes);
                     callBack.ReceiveData(bytes);
                 }
             }
@@ -76,6 +80,7 @@ namespace Exercise
         }
         public void Logout()
         {
+            _sendData = false;
             _timer.Stop();
         }
     }
